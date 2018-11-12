@@ -18,9 +18,17 @@ class Status(Enum):
     OWNED_P2_MORTGAGED = -7
 
 class Property(object):
-    def __init__(self, id, name, colour, price, status):
-        self.id=id
+    def __init__(self, owner, name, colour, monopoly_size, price, build_cost, rent_house_1, rent_house_2, rent_house_3, rent_house_4, rent_hotel, status=Status.UNOWNED):
+        self.owner=owner
         self.name=name
         self.colour=colour
+        self.monopoly_size= monopoly_size
         self.price=price
+        self.build_cost=build_cost
+        self.rent_house_1= rent_house_1
+        self.rent_house_2= rent_house_2
+        self.rent_house_3= rent_house_3
+        self.rent_house_4= rent_house_4
+        self.rent_hotel= rent_hotel
         self.status=status
+
