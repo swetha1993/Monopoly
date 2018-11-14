@@ -71,3 +71,6 @@ class Board:
 
         # for key in self.board_dict:
         #     print(key, self.board_dict[key])
+
+    def get_rent(self, position):
+        return self.board_dict[position].rent

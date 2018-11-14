@@ -3,6 +3,7 @@ import Constants
 from GameState import GameState
 import Utility
 import Player
+from Property import Status
 
 class Adjudicator:
    
@@ -14,7 +15,44 @@ class Adjudicator:
         self.board_instance = Board.Board()
 
     def run_player_on_state(self, player, state):
-        pass
+        if state.turn_id%2==0:
+            position=state.players_position[0]
+        else:
+            position=state.players_position[1]
+
+        if state.property_status[position] == Status.UNOWNED:
+            if player.buyProperty(state):
+                state.updateBoughtProperty(self.board_instance[position])
+            elif player.auctionProperty(state):
+                pass
+        elif state.property_status[position] in (-1, 10):
+            jail_decision= player.jailDecision(state)
+            if jail_decision=="R":
+                pass
+            elif jail_decision=="C":
+                pass
+            elif jail_decision == "P":
+                pass
+
+        elif state.property_status[position] != Status.UNOWNED:
+            if state.turn_id % 2 == 0:
+                if state.property_status[position] < 0:
+                    #owned by p2
+                    state.deductCash(self.board_instance.get_rent(position))
+                else:
+                    #TODO:
+                    pass
+            else:
+                if state.property_status[position] > 0:
+                    #owned by p2
+                    state.deductCash(self.board_instance.get_rent(position))
+                else:
+                    #TODO:
+                    pass
+
+
+        BMST= player.getBMSTDecision(state)
+
 
     def broad_cast_state(self, player1, player2, state):
         pass
