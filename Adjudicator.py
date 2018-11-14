@@ -22,10 +22,10 @@ class Adjudicator:
 
         if state.property_status[position] == Status.UNOWNED:
             if player.buyProperty(state):
-                state.updateBoughtProperty(self.board_instance[position])
+                state.updateBoughtProperty(self.board_instance.board_dict[position])
             elif player.auctionProperty(state):
                 pass
-        elif state.property_status[position] in (-1, 10):
+        elif position == 10:#dunno if we need -1
             jail_decision= player.jailDecision(state)
             if jail_decision=="R":
                 pass
