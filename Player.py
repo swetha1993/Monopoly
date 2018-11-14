@@ -2,15 +2,28 @@ from Property import Status
 
 
 class Player(object):
-    def __init__(self, id, position, cash, properties, turn_no):
+    def __init__(self, id=0):
         self.id = id  # Player 1 -> id=1, Player 2 ->id=2
-        self.position = position
-        self.cash = cash
-        self.properties = properties
-        self.turn_no = turn_no
-        self.doubles_count = 0
-        self.skip_player_turn = False
+	
+	def getBMSTDecision(self, state):
+		pass	
+	def respondTrade(self, state):
+		pass
+	def buyProperty(self, state):
+		pass
+	def auctionProperty(self, state):
+		pass
+	def jailDecision(self, state):
+		pass
+	def respondTrade(self, state):
+		pass
+	def receiveState(self, state):
+		pass
+	def respondMortgage(self, state):
+	    pass
 
+	
+'''		
     def movePosition(self, moves):
         self.position += moves
 
@@ -66,6 +79,7 @@ class Player(object):
 
     def get_id(self):
         return self.id
+		
 
     def get_position(self):
         return self.position
@@ -85,5 +99,6 @@ class Player(object):
             self.skip_player_turn = False
             return False
         return True
+'''
 
 
