@@ -130,7 +130,6 @@ class Adjudicator:
                     # Updating position of player
                     new_game_state.update_player_position(dice.get_dice_roll1() + dice.get_dice_roll2())
 
-                # TODO: Check this part.. might have destroyed due to conflict merge
                 self.runPlayerOnState(current_player, new_game_state)
 
                 self.game_state = new_game_state
