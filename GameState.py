@@ -33,6 +33,12 @@ class GameState:
         else:
             self.players_position = (self.players_position, self.players_position[1]+moves)
 
+    def move_player_to_jail(self, jail_location):
+        if self.turn_id % 2 == 0:
+            self.players_position = (jail_location, self.players_position[1])
+        else:
+            self.players_position = (self.players_position[0], jail_location)
+
     def update_turn_id(self, turn_id):
         self.turn_id = turn_id
 
