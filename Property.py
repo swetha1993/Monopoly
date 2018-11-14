@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class Status(Enum):
     UNOWNED = 0
     OWNED_P1_NO_HOUSES = 1
@@ -20,7 +19,7 @@ class Status(Enum):
 
 
 class Property(object):
-    def __init__(self, owner, name, colour, monopoly_size, price, build_cost, rent, rent_house_1, rent_house_2, rent_house_3,
+    def __init__(self, owner, name, colour, monopoly_size, price, build_cost, default_rent, rent_house_1, rent_house_2, rent_house_3,
                  rent_house_4, rent_hotel, status=Status.UNOWNED):
         self.owner = owner
         self.name = name
@@ -28,7 +27,8 @@ class Property(object):
         self.monopoly_size = monopoly_size
         self.price = price
         self.build_cost = build_cost
-        self.rent = rent
+        self.default_rent = default_rent
+        self.rent = default_rent
         self.rent_house_1 = rent_house_1
         self.rent_house_2 = rent_house_2
         self.rent_house_3 = rent_house_3
