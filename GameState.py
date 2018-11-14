@@ -3,8 +3,9 @@ from enum import Enum
 from Property import Status
 import copy
 
+
 class Phase(Enum):
-    DICE_ROLL= 0
+    DICE_ROLL = 0
     BSMT = 1
     TRADE_OFFER = 2
     BUY_UNOWNED_PROPERTY = 3
@@ -13,6 +14,7 @@ class Phase(Enum):
     JAIL = 6
     CHANCE_CARD = 7
     COMMUNITY_CARD = 8
+
 
 class GameState:
     def __init__(self, turn_id=0, property_status= ()*42, players_position=(0,0),
@@ -45,26 +47,35 @@ class GameState:
     def get_game_state(self, ):
         return copy.deepcopy(self)
 
-    def addCash(self, cash):
-        if self.turn_id % 2==0:
+    def addCash(self, cash, player_id):
+        if player_id == 0:
             self.players_cash = (self.players_cash[0] + cash, self.players_cash[1])
         else:
             self.players_cash = (self.players_cash[0], self.players_cash[1] + cash)
 
-    def deductCash(self, cash):
-        if self.turn_id % 2==0:
+    def deductCash(self, cash, player_id):
+        if player_id == 0:
             self.players_cash = (self.players_cash[0] - cash, self.players_cash[1])
         else:
             self.players_cash = (self.players_cash[0], self.players_cash[1] - cash)
 
     def updateBoughtProperty(self, p):
-        self.deductCash(p.price)
-        if self.turn_id %2 ==0:
+        player_id = self.turn_id %2
+        self.deductCash(p.price, player_id)
+        if player_id == 0:
             self.property_status[p.id] = Status.OWNED_P1_NO_HOUSES
         else:
             self.property_status[p.id] = Status.OWNED_P2_NO_HOUSES
-        self.phase= Phase.BUY_UNOWNED_PROPERTY
+        self.phase = Phase.BUY_UNOWNED_PROPERTY
 
+    def assign_property(self, player_id, prop_id, bid_amt):
+        # Assigning the property with prop_id to player_id in given state
+        if player_id == 0:
+            self.property_status[prop_id] = Status.OWNED_P1_NO_HOUSES
+        else:
+            self.property_status[prop_id] = Status.OWNED_P2_NO_HOUSES
+        self.deductCash(bid_amt, player_id)
+        self.phase = Phase.BUY_UNOWNED_PROPERTY
 
     def updateMortgagedProperty(self, p):
         if self.turn_id % 2 == 0:
