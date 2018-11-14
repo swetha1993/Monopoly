@@ -33,7 +33,6 @@ class Adjudicator:
                 pass
             elif jail_decision == "P":
                 pass
-
         elif state.property_status[position] != Status.UNOWNED:
             if state.turn_id % 2 == 0:
                 if state.property_status[position] < 0:
@@ -49,7 +48,6 @@ class Adjudicator:
                 else:
                     #TODO:
                     pass
-
 
         BMST= player.getBMSTDecision(state)
 
@@ -76,8 +74,6 @@ class Adjudicator:
 
             current_player = self.get_current_player(turn_id)
 
-            #TODO: check if in jail
-
             new_game_state=self.game_state.get_game_state()
 
             #Updating position of player
@@ -91,7 +87,6 @@ class Adjudicator:
                 current_player.doubles_count = 0
 
             #move position of current player with diceroll1+dice_roll2
-
             self.game_state= new_game_state
             self.game_state.update_turn_id(turn_id)
             print(turn_id, current_player.get_id(), dice.get_dice_roll1(), dice.get_dice_roll2(),

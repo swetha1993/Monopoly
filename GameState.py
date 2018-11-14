@@ -62,32 +62,32 @@ class GameState:
 
     def updateMortgagedProperty(self, p):
         if self.turn_id % 2 == 0:
-            self.property_status[p.id].status = Status.OWNED_P1_MORTGAGED
+            self.property_status[p.id] = Status.OWNED_P1_MORTGAGED
         else:
-            self.property_status[p.id].status = Status.OWNED_P2_MORTGAGED
-        self.addCash(self.property_status[p.id].price)
+            self.property_status[p.id] = Status.OWNED_P2_MORTGAGED
+        self.addCash(p.price)
 
     def updateBuiltHouse(self, p):
-        num = self.property_status[p.id].status.value
+        num = self.property_status[p.id]
         if abs(num) >= 6:
             # Property is mortgaged or there is a hotel, cannot build
             return False
         if self.turn_id %2 == 0:
-            self.property_status[p.id].status = Status(num + 1)
+            self.property_status[p.id] = Status(num + 1)
         else:
-            self.property_status[p.id].status = Status(num - 1)
+            self.property_status[p.id] = Status(num - 1)
         self.deductCash(p.build_cost)
         return True
 
     def updateBuiltHotel(self, p):
-        num = self.property_status[p.id].status.value
+        num = self.property_status[p.id]
         if abs(num) != 5:
             # Less than four houses or mortgaged, cannot build
             return False
         if self.turn_id %2 == 0:
-            self.property_status[p.id].status = Status.OWNED_P1_HOTEL
+            self.property_status[p.id] = Status.OWNED_P1_HOTEL
         else:
-            self.property_status[p.id].status = Status.OWNED_P2_HOTEL
+            self.property_status[p.id] = Status.OWNED_P2_HOTEL
         self.deductCash(p.build_cost)
         return True
 
