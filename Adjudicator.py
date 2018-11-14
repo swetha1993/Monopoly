@@ -19,11 +19,9 @@ class Adjudicator:
 
         # Fetch player position
         position = state.players_position[state.turn_id % 2]
-
         if state.property_status[position] == Status.UNOWNED:
             if player.buyProperty(state):
                 state.updateBoughtProperty(self.board_instance.board_dict[position])
-
             else:
                 self.auction(state)
 
@@ -140,6 +138,7 @@ class Adjudicator:
             print(turn_id, current_player.get_id(), dice.get_dice_roll1(), dice.get_dice_roll2(),
                   current_player.doubles_count)
             turn_id += 1
+        return 1,2	# Needs to be changed to winner, gamestate
 
     def complete_player_move(self):
         pass

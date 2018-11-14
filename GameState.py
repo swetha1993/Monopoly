@@ -2,7 +2,7 @@ from Constants import INITIAL_CASH_TO_THE_PLAYER
 from enum import Enum
 from Property import Status
 import copy
-
+import numpy as np
 
 class Phase(Enum):
     DICE_ROLL = 0
@@ -17,7 +17,7 @@ class Phase(Enum):
 
 
 class GameState:
-    def __init__(self, turn_id=0, property_status= ()*42, players_position=(0,0),
+    def __init__(self, turn_id=0, property_status= np.zeros(42), players_position=(0,0),
                  players_cash=(INITIAL_CASH_TO_THE_PLAYER, INITIAL_CASH_TO_THE_PLAYER),
                  phase= Phase.DICE_ROLL, additional_info={}, debt=None, past_states=[]):
         self.turn_id = turn_id
