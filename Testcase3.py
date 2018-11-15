@@ -74,8 +74,59 @@ def testAuctionAndReportWinner(adjudicator):
     return False
 
 
+
+def testCommunityChestCard(adjudicator):
+    p1 = Player1(0)
+    p2 = Player2(1)
+    dice = [(1, 1)]
+    winner, state = adjudicator.run_game(p1, p2, dice, [], [9])
+
+    state = adjudicator.game_state
+    if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER + 100:
+        return False;
+
+    if state.players_cash[1] == INITIAL_CASH_TO_THE_PLAYER:
+        return True;
+
+    return False
+
+
+def testChangePositionOnAChanceCard(adjudicator):
+    p1 = Player1(0)
+    p2 = Player2(1)
+    dice = [(3, 4)]
+    #Advance to Boardwalk
+    winner, state = adjudicator.run_game(p1, p2, dice, [13], [])
+
+    state = adjudicator.game_state
+    if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER:
+        return False;
+
+    if state.players_position[0] == 40:
+        return True
+
+    return False
+
+
+
+def testCollectMoneyOnAChanceCard(adjudicator):
+    p1 = Player1(0)
+    p2 = Player2(1)
+    dice = [(3, 4)]
+    # Advance to St. Charles Place. If you pass Go, collect $200
+    winner, state = adjudicator.run_game(p1, p2, dice, [2], [])
+
+    state = adjudicator.game_state
+    if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER + 200:
+        return False;
+
+    return False
+
 tests = [
-    testAuctionAndReportWinner
+    testAuctionAndReportWinner,
+    testCommunityChestCard,
+    testChangePositionOnAChanceCard,
+    testCollectMoneyOnAChanceCard
 ]
 
 
