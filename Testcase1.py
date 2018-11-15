@@ -92,7 +92,7 @@ def testIncomeTax(adjudicator):
     return False  
 	
 tests = [
-	#testIncomeTax,
+	testIncomeTax,
 	testPayRent,
     testCommunityChestCard
 ]

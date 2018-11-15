@@ -195,6 +195,8 @@ class Adjudicator:
         # bmst = player.getBMSTDecision(state)
 
     def communityChestAction(self, state, player_id):
+        if len(self.community_chest_cards) == 0:
+            return
         id = self.community_chest_cards.pop(0)
         self.community_chest_cards.append(id)
         card = self.board_instance.community_cards[id]
