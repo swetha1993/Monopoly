@@ -53,13 +53,29 @@ def testPayRent(adjudicator):
 
     winner, state = adjudicator.run_game(p1, p2, dice, [], [])
     state = adjudicator.game_state
-    if state.players_cash[0] == INITIAL_CASH_TO_THE_PLAYER - 60 + 4:
-    	return True;
+    if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER - 60 + 4:
+    	return False
 
     if state.players_cash[1] == INITIAL_CASH_TO_THE_PLAYER -  4:
     	return True;
     	
     return False  
+
+def testCommunityChestCard(adjudicator):
+    p1 = Player1(0)
+    p2 = Player2(1)
+    dice = [(1,1)]
+
+    winner, state = adjudicator.run_game(p1,p2,dice,[],[6])
+
+    state = adjudicator.game_state
+    if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER  + 50:
+        return False;
+
+    if state.players_cash[1] == INITIAL_CASH_TO_THE_PLAYER - 50:
+        return True;
+    return False    
+        
 	
 def testIncomeTax(adjudicator):
     p1 =  Player1(0)
@@ -75,7 +91,8 @@ def testIncomeTax(adjudicator):
 	
 tests = [
 	testIncomeTax,
-	#testPayRent
+	testPayRent,
+    testCommunityChestCard
 ]
 
 			
