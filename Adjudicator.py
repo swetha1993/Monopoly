@@ -17,8 +17,8 @@ class Adjudicator:
         self.game_state = None
         self.dice_index = 0
         self.board_instance = Board.Board()
-        self.community_chest_cards= None
-        self.chance_cards= None
+        self.community_chest_cards = None
+        self.chance_cards = None
 
     def get_nearest_railroad(self, current_position):
         index = bisect.bisect_right(Constants.RAIL_ROAD_LOCATIONS, current_position)
@@ -168,7 +168,7 @@ class Adjudicator:
         # bmst = player.getBMSTDecision(state)
 
     def communityChestAction(self, state, player_id):
-        id=self.community_chest_cards.pop(0)
+        id = self.community_chest_cards.pop(0)
         self.community_chest_cards.append(id)
         card = self.board_instance.community_cards[id]
         if card.id == 0:
@@ -176,7 +176,7 @@ class Adjudicator:
             state.move_player_to_position(card.position)
             state.addCash(card.money, player_id)
         elif card.id == 1:
-            #Bank error in your favor, collect $200
+            # Bank error in your favor, collect $200
             state.addCash(card.money, player_id)
         elif card.id == 2:
             # Doctor's fees, Pay $50
@@ -193,7 +193,7 @@ class Adjudicator:
         elif card.id == 6:
             # Grand Opera Night. Collect $50 from every player for opening night seats.
             state.addCash(card.money, player_id)
-            if player_id==1:
+            if player_id == 1:
                 state.deductCash(card.money, 0)
             else:
                 state.deductCash(card.money, 1)
@@ -267,7 +267,7 @@ class Adjudicator:
         if dice_rolls is not None:
             self.turn_limit = len(dice_rolls)
 
-        while turn_id < self.turn_limit:
+        while self.dice_index < self.turn_limit:
 
             self.game_state.past_states.append(self.game_state)
             sub_turn_id = 0
