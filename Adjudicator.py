@@ -511,7 +511,6 @@ class Adjudicator:
                 else:
                     # Updating position of player
                     new_game_state.update_player_position(dice.get_dice_roll1() + dice.get_dice_roll2())
-
                 winner, state = self.runPlayerOnState(current_player, new_game_state)
                 if winner:
                     break
