@@ -103,17 +103,23 @@ class Adjudicator:
             state.addCash(chance_card.money, player_id)
         return bsmt_required, rent_amt
 
-    def runPlayerOnState(self, player, state):
+    def get_chance_card(self):
+        chance_index = self.chance_cards[0]
+        del self.chance_cards[0]
+        self.chance_cards.append(chance_index)
+        return self.board_instance.chance_cards[chance_index]
 
+    def runPlayerOnState(self, player, state):
         # Fetch player position
         player_id = state.turn_id % 2
         position = state.players_position[player_id]
         _rent_amt = None
         if self.board_instance.board_dict[position].name == Constants.COMMUNITY_CHEST:
             self.communityChestAction(state, player_id)
+            return
         elif state.is_player_has_chance_card():
-            chance_card = self.board_instance.get_chance_card()
-            bsmt_action, _rent_amt = state.perform_chance_card_action(chance_card)
+            chance_card = self.get_chance_card()
+            bsmt_action, _rent_amt = state.perform_chance_card_action(chance_card, state)
             if bsmt_action is False:
                 return
         if state.property_status[position] == Status.UNOWNED:
