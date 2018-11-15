@@ -122,11 +122,33 @@ def testCollectMoneyOnAChanceCard(adjudicator):
 
     return False
 
+
+def testFreeJailExitUsingJailFreeCard(adjudicator):
+    p1 = Player1(0)
+    p2 = Player2(1)
+    dice = [(1, 1),
+            (2, 3)]
+    # 4 - Get out of jail free, this card may be kept until needed
+    # 9 - Go to Jail. Go directly to Jail. Do not pass GO, do not collect $200
+    winner, state = adjudicator.run_game(p1, p2, dice, [9], [4])
+
+    state = adjudicator.game_state
+    if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER :
+        return False;
+
+    # PLayer is sent back to GO when he uses Jail free card
+    if state.players_position[0] == 0:
+        return True
+
+    return False
+
+
 tests = [
     testAuctionAndReportWinner,
     testCommunityChestCard,
     testChangePositionOnAChanceCard,
-    testCollectMoneyOnAChanceCard
+    testCollectMoneyOnAChanceCard,
+    testFreeJailExitUsingJailFreeCard
 ]
 
 
