@@ -10,6 +10,8 @@ class ChanceCard:
         self.money = money
         self.money2 = money2
 
+    def print_card(self):
+        print(self.id, self.content, self.type, self.position, self.money, self.money2)
 
 class CommunityChestCard:
     def __init__(self, id, content, type, position, money, money2):

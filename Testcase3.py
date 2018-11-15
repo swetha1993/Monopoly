@@ -21,7 +21,7 @@ class Player1(object):
         return 20
 
     def jailDecision(self, state):
-        pass
+        return "C"
 
     def receiveState(self, state):
         pass
@@ -100,7 +100,7 @@ def testChangePositionOnAChanceCard(adjudicator):
 
     state = adjudicator.game_state
     if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER:
-        return False;
+        return False
 
     if state.players_position[0] == 40:
         return True
@@ -114,13 +114,13 @@ def testCollectMoneyOnAChanceCard(adjudicator):
     p2 = Player2(1)
     dice = [(3, 4)]
     # Advance to St. Charles Place. If you pass Go, collect $200
-    winner, state = adjudicator.run_game(p1, p2, dice, [2], [])
+    winner, state = adjudicator.run_game(p1, p2, dice, [0], [])
 
     state = adjudicator.game_state
     if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER + 200:
         return False;
 
-    return False
+    return True
 
 
 def testFreeJailExitUsingJailFreeCard(adjudicator):
@@ -153,9 +153,9 @@ tests = [
 
 
 def runTests():
-    adjudicator = Adjudicator()
     allPassed = True
     for test in tests:
+        adjudicator = Adjudicator()
         result = test(adjudicator)
         if not result:
             print(test.__name__ + " failed!")
