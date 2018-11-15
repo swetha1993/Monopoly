@@ -6,6 +6,7 @@ import Player
 from Property import Status
 from Constants import DOUBLES_COUNT
 
+
 class Adjudicator:
 
     def __init__(self):
@@ -15,6 +16,63 @@ class Adjudicator:
         self.game_state = None
         self.board_instance = Board.Board()
 
+    def perform_chance_card_action(self, chance_card, state):
+        next_position = chance_card.position
+        id = chance_card.id
+        player_id = state.turn_id % 2
+        current_position = state.get_player_position()
+        if id == 0:
+            state.move_player_to_position(next_position)
+            state.addCash(chance_card.money, player_id)
+        elif id == 1:
+            if current_position > Constants.CHANCE_LOCATIONS[1]:
+                state.addCash(chance_card.money, player_id)
+            state.move_player_to_position(next_position)
+        elif id == 2:
+            if current_position > Constants.CHANCE_LOCATIONS[0]:
+                state.addCash(chance_card.money, player_id)
+            state.move_player_to_position(next_position)
+        elif id == 3:
+            # pending
+            # need to calculate the position
+            state.move_player_to_position(next_position)
+        elif id == 4:
+            # pending
+            # need to calculate the position
+            state.move_player_to_position(next_position)
+        elif id == 5:
+            # pending
+            # need to calculate the position
+            state.move_player_to_position(next_position)
+        elif id == 6:
+            state.addCash(chance_card.money, player_id)
+        elif id == 7:
+            # pending
+            pass
+        elif id == 8:
+            next_position = current_position - 3
+            state.move_player_to_position(next_position)
+        elif id == 9:
+            # pending
+            state.move_player_to_position(next_position)
+        elif id == 10:
+            # pending
+            pass
+        elif id == 11:
+            state.deductCash(chance_card.money, player_id)
+        elif id == 12:
+            # pending bsmt required ?
+            state.move_player_to_position(next_position)
+        elif id == 13:
+            # pending bsmt required ?
+            state.move_player_to_position(next_position)
+        elif id == 14:
+            next_player_id = (player_id + 1) % 2
+            state.addCash(chance_card.money, next_player_id)
+            state.deductCash(chance_card.money, player_id)
+        elif id == 15:
+            state.addCash(chance_card.money, player_id)
+
     def runPlayerOnState(self, player, state):
 
         # Fetch player position
@@ -23,7 +81,12 @@ class Adjudicator:
 
         if self.board_instance.board_dict[position].name == Constants.COMMUNITY_CHEST:
             self.communityChestAction(state, player_id)
-
+        elif state.is_player_has_chance_card():
+            chance_card = self.board_instance.get_chance_card()
+            state.perform_chance_card_action(chance_card)
+        elif state.property_status[position] == Status.UNOWNED:
+            if player.buyProperty(state):
+                state.updateBoughtProperty(self.board_instance.board_dict[position])
         elif position == Constants.JAIL_LOCATION:  # Check if player is in jail
             jail_decision = player.jailDecision(state)
             if jail_decision == "R":
@@ -34,7 +97,7 @@ class Adjudicator:
                 pass
 
         elif position == Constants.VISITING_JAIL_LOCATION:
-            #no action
+            # no action
             return
 
         elif state.property_status[position] == Status.UNOWNED:
@@ -60,7 +123,7 @@ class Adjudicator:
                         # TODO: Phase = BSMT (Mortgage or lose)
                         pass
                 else:
-                    #TODO: Phase = BSMT & additional info
+                    # TODO: Phase = BSMT & additional info
                     pass
             else:
                 if state.property_status[position] > 0:
@@ -82,63 +145,63 @@ class Adjudicator:
         bmst = player.getBMSTDecision(state)
 
     def communityChestAction(self, state, player_id):
-        card= self.board_instance.community_cards.pop(0)
+        card = self.board_instance.community_cards.pop(0)
         self.board_instance.community_cards.append(card)
         if card.id == 0:
-            #Advance to Go (Collect $200)
+            # Advance to Go (Collect $200)
             state.move_player_to_position(card.position)
             state.addCash(card.money, player_id)
         elif card.id == 1:
-            #Bank error in your favor, collect $200
+            # Bank error in your favor, collect $200
             state.addCash(card.money)
         elif card.id == 2:
-            #Doctor's fees, Pay $50
+            # Doctor's fees, Pay $50
             state.deductCash(abs(card.money), player_id)
         elif card.id == 3:
-            #From sale of stock you get $50
+            # From sale of stock you get $50
             state.addCash(abs(card.money), player_id)
         elif card.id == 4:
-            #Get out of jail free, this card may be kept until needed
+            # Get out of jail free, this card may be kept until needed
             state.move_player_to_position(card.position)
         elif card.id == 5:
-            #Go to jail, go directly to jail – Do not pass Go, do not collect $200
+            # Go to jail, go directly to jail – Do not pass Go, do not collect $200
             state.move_player_to_position(card.position)
         elif card.id == 6:
-            #Grand Opera Night. Collect $50 from every player for opening night seats.
+            # Grand Opera Night. Collect $50 from every player for opening night seats.
             state.addCash(card.money, player_id)
         elif card.id == 7:
-            #Holiday Fund matures - Receive $100
+            # Holiday Fund matures - Receive $100
             state.addCash(card.money, player_id)
         elif card.id == 8:
-            #Income Tax refund. Collect $20
+            # Income Tax refund. Collect $20
             state.addCash(card.money, player_id)
         elif card.id == 9:
-            #Life Insurance Matures - Collect $100
+            # Life Insurance Matures - Collect $100
             state.addCash(card.money, player_id)
         elif card.id == 10:
-            #Pay Hospital Fees of $50
+            # Pay Hospital Fees of $50
             state.deductCash(abs(card.money), player_id)
         elif card.id == 11:
-            #Pay School Fees of $50
+            # Pay School Fees of $50
             state.deductCash(abs(card.money), player_id)
         elif card.id == 12:
-            #Receive $25 Consultancy Fee
+            # Receive $25 Consultancy Fee
             state.addCash(card.money, player_id)
         elif card.id == 13:
-            #You are assessed for street repairs: Pay $40 per house and $115 per hotel you own.
-            to_pay=0
+            # You are assessed for street repairs: Pay $40 per house and $115 per hotel you own.
+            to_pay = 0
             for property_status in state.property_status:
                 property_status = abs(property_status)
-                if abs(property_status) > 1 and property_status < 6 :
-                    to_pay += abs(card.money) * (property_status-1)
+                if abs(property_status) > 1 and property_status < 6:
+                    to_pay += abs(card.money) * (property_status - 1)
                 elif property_status == 6:
                     to_pay += abs(card.money2)
             state.deductCash(to_pay, player_id)
         elif card.id == 14:
-            #You have won second prize in a beauty contest– collect $10
+            # You have won second prize in a beauty contest– collect $10
             state.addCash(card.money, player_id)
         elif card.id == 15:
-            #You inherit $100
+            # You inherit $100
             state.addCash(card.money, player_id)
 
     def auction(self, state):
@@ -207,7 +270,7 @@ class Adjudicator:
             print(turn_id, current_player.get_id(), dice.get_dice_roll1(), dice.get_dice_roll2(),
                   current_player.doubles_count)
             turn_id += 1
-        return 1,2	# Needs to be changed to winner, gamestate
+        return 1, 2  # Needs to be changed to winner, gamestate
 
     def complete_player_move(self):
         pass

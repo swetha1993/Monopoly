@@ -4,20 +4,28 @@ class Player(object):
 
         def getBMSTDecision(self, state):
             pass
+
         def respondTrade(self, state):
             pass
+
         def buyProperty(self, state):
             pass
+
         def auctionProperty(self, state):
             pass
+
         def jailDecision(self, state):
             pass
+
         def respondTrade(self, state):
             pass
+
         def receiveState(self, state):
             pass
+
         def respondMortgage(self, state):
             pass
+
 
 '''		
     def movePosition(self, moves):
@@ -96,5 +104,3 @@ class Player(object):
             return False
         return True
 '''
-
-

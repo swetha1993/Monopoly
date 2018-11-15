@@ -1,8 +1,10 @@
 from Constants import INITIAL_CASH_TO_THE_PLAYER, DOUBLES_COUNT
+import Constants
 from enum import Enum
 from Property import Status
 import copy
 import numpy as np
+
 
 class Phase(Enum):
     DICE_ROLL = 0
@@ -17,24 +19,24 @@ class Phase(Enum):
 
 
 class GameState:
-    def __init__(self, turn_id=0, property_status= np.zeros(42), players_position=(0,0),
+    def __init__(self, turn_id=0, property_status=np.zeros(42), players_position=(0, 0),
                  players_cash=(INITIAL_CASH_TO_THE_PLAYER, INITIAL_CASH_TO_THE_PLAYER),
-                 phase= Phase.DICE_ROLL, additional_info={}, debt=None, past_states=[]):
+                 phase=Phase.DICE_ROLL, additional_info={}, debt=None, past_states=[]):
         self.turn_id = turn_id
         self.property_status = property_status
         self.players_position = players_position
         self.players_cash = players_cash
-        self.phase=phase
-        self.additional_info= additional_info
+        self.phase = phase
+        self.additional_info = additional_info
         self.additional_info[DOUBLES_COUNT] = {0: 0, 1: 0}
-        self.debt=debt
-        self.past_states=past_states
+        self.debt = debt
+        self.past_states = past_states
 
     def update_player_position(self, moves):
         if self.turn_id % 2 == 0:
             self.players_position = (self.players_position[0] + moves, self.players_position[1])
         else:
-            self.players_position = (self.players_position, self.players_position[1]+moves)
+            self.players_position = (self.players_position, self.players_position[1] + moves)
 
     def move_player_to_position(self, position):
         if self.turn_id % 2 == 0:
@@ -121,3 +123,18 @@ class GameState:
             self.skip_player_turn = False
             return False
         return True
+
+    def get_player_position(self):
+        pos = None
+        if self.turn_id % 2 == 0:
+            pos = self.players_position[0]
+        else:
+            pos = self.players_position[1]
+        return pos
+
+    def is_player_has_chance_card(self):
+        pos = self.get_player_position()
+        if pos in Constants.CHANCE_LOCATIONS:
+            return True
+        else:
+            return False

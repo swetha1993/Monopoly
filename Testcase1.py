@@ -1,8 +1,8 @@
-
 import Board
 import Constants
 from GameState import GameState, Phase
 from Adjudicator import Adjudicator
+
 
 class Player1(object):
     def __init__(self, id=0):
@@ -10,20 +10,28 @@ class Player1(object):
 
         def getBMSTDecision(self, state):
             pass
+
         def respondTrade(self, state):
             pass
+
         def buyProperty(self, state):
             return True
+
         def auctionProperty(self, state):
             pass
+
         def jailDecision(self, state):
             pass
+
         def respondTrade(self, state):
             pass
+
         def receiveState(self, state):
             pass
+
         def respondMortgage(self, state):
             pass
+
 
 class Player2(object):
     def __init__(self, id=0):
@@ -31,72 +39,81 @@ class Player2(object):
 
         def getBMSTDecision(self, state):
             pass
+
         def respondTrade(self, state):
             pass
+
         def buyProperty(self, state):
             pass
+
         def auctionProperty(self, state):
             pass
+
         def jailDecision(self, state):
             pass
+
         def respondTrade(self, state):
             pass
+
         def receiveState(self, state):
             pass
+
         def respondMortgage(self, state):
             pass
 
+
 def testPayRent(adjudicator):
-    p1 =  Player1(0)
-    p2 =  Player2(1)
-    dice = [(1, 2),(1,2)]
+    p1 = Player1(0)
+    p2 = Player2(1)
+    dice = [(1, 2), (1, 2)]
 
     winner, state = adjudicator.run_game(p1, p2, dice, [], [])
     state = adjudicator.game_state
     if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER - 60 + 4:
-    	return False
+        return False
 
-    if state.players_cash[1] == INITIAL_CASH_TO_THE_PLAYER -  4:
-    	return True;
-    	
-    return False  
+    if state.players_cash[1] == INITIAL_CASH_TO_THE_PLAYER - 4:
+        return True;
+
+    return False
+
 
 def testCommunityChestCard(adjudicator):
     p1 = Player1(0)
     p2 = Player2(1)
-    dice = [(1,1)]
+    dice = [(1, 1)]
 
-    winner, state = adjudicator.run_game(p1,p2,dice,[],[6])
+    winner, state = adjudicator.run_game(p1, p2, dice, [], [6])
 
     state = adjudicator.game_state
-    if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER  + 50:
+    if state.players_cash[0] != Constants.INITIAL_CASH_TO_THE_PLAYER + 50:
         return False;
 
-    if state.players_cash[1] == INITIAL_CASH_TO_THE_PLAYER - 50:
+    if state.players_cash[1] == Constants.INITIAL_CASH_TO_THE_PLAYER - 50:
         return True;
-    return False    
-        
-	
+    return False
+
+
 def testIncomeTax(adjudicator):
-    p1 =  Player1(0)
-    p2 =  Player2(1)
+    p1 = Player1(0)
+    p2 = Player2(1)
     dice = [(1, 1)]
 
     winner, state = adjudicator.run_game(p1, p2, dice, [], [])
     state = adjudicator.game_state
-    if state.players_cash[0] == INITIAL_CASH_TO_THE_PLAYER - 200:
-    	return True;
-    	
-    return False  
-	
+    if state.players_cash[0] == Constants.INITIAL_CASH_TO_THE_PLAYER - 200:
+        return True;
+
+    return False
+
+
 tests = [
-	testIncomeTax,
-	testPayRent,
+    testIncomeTax,
+    testPayRent,
     testCommunityChestCard
 ]
 
-			
-			
+
 def runTests():
     adjudicator = Adjudicator()
     allPassed = True
@@ -107,4 +124,5 @@ def runTests():
         allPassed = False
     if allPassed: print("All tests passed!")
 
-runTests()	
+
+runTests()

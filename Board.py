@@ -3,6 +3,7 @@ import Utility
 import Property
 from pprint import pprint
 
+
 class Board:
     def __init__(self):
         self.board_dict = dict()
@@ -74,3 +75,9 @@ class Board:
 
     def get_rent(self, position):
         return self.board_dict[position].rent
+
+    def get_chance_card(self):
+        chance_item = self.chance_cards[0]
+        del self.chance_cards[0]
+        self.chance_cards.append(chance_item)
+        return chance_item
