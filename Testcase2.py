@@ -123,11 +123,12 @@ def testCollectSalaryOnPassingThroughGo(adjudicator):
     dice = [(6, 6), (1, 2),
             (6, 6), (1, 2),
             (6, 4), (1, 2),
-            (3, 4)]
+            (3, 4), (4,5),
+            (6,1),(1,2),
+            (5,4)]
 
     winner, state = adjudicator.run_game(p1, p2, dice, [], [])
     state = adjudicator.game_state
-    print(state.players_cash)
     if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER + 200:
         return False
 
