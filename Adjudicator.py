@@ -1,18 +1,17 @@
 import Board
-import Constants
 from GameState import GameState, Phase
 import Utility
 import Player
 from Property import Status
-from Constants import DOUBLES_COUNT
 import bisect
+from Constants import *
 
 
 class Adjudicator:
 
     def __init__(self):
-        self.turn_limit = Constants.TURN_LIMIT
-        self.player_count = Constants.PLAYER_COUNT
+        self.turn_limit = TURN_LIMIT
+        self.player_count = PLAYER_COUNT
         self.player_instances = []
         self.game_state = None
         self.dice_index = 0
@@ -21,17 +20,17 @@ class Adjudicator:
         self.chance_cards = None
 
     def get_nearest_railroad(self, current_position):
-        index = bisect.bisect_right(Constants.RAIL_ROAD_LOCATIONS, current_position)
-        if index == Constants.RAIL_ROAD_LOCATIONS.__len__():
+        index = bisect.bisect_right(RAIL_ROAD_LOCATIONS, current_position)
+        if index == RAIL_ROAD_LOCATIONS.__len__():
             index = 0
-        next_position = Constants.RAIL_ROAD_LOCATIONS[index]
+        next_position = RAIL_ROAD_LOCATIONS[index]
         return next_position
 
     def get_nearest_utility(self, current_position):
-        index = bisect.bisect_right(Constants.UTILITY_LOCATIONS, current_position)
-        if index == Constants.UTILITY_LOCATIONS.__len__():
+        index = bisect.bisect_right(UTILITY_LOCATIONS, current_position)
+        if index == UTILITY_LOCATIONS.__len__():
             index = 0
-        next_position = Constants.UTILITY_LOCATIONS[index]
+        next_position = UTILITY_LOCATIONS[index]
         return next_position
 
     def perform_chance_card_action(self, chance_card, state):
@@ -45,11 +44,11 @@ class Adjudicator:
             state.move_player_to_position(next_position)
             state.addCash(chance_card.money, player_id)
         elif id == 1:
-            if current_position > Constants.CHANCE_LOCATIONS[1]:
+            if current_position > CHANCE_LOCATIONS[1]:
                 state.addCash(chance_card.money, player_id)
             state.move_player_to_position(next_position)
         elif id == 2:
-            if current_position > Constants.CHANCE_LOCATIONS[0]:
+            if current_position > CHANCE_LOCATIONS[0]:
                 state.addCash(chance_card.money, player_id)
             state.move_player_to_position(next_position)
         elif id == 3:
@@ -114,18 +113,25 @@ class Adjudicator:
         player_id = state.turn_id % 2
         position = state.players_position[player_id]
         _rent_amt = None
-        if self.board_instance.board_dict[position].name == Constants.COMMUNITY_CHEST:
+        if position in COMMUNITY_CHEST_LOCATIONS:
             self.communityChestAction(state, player_id)
             return
-        elif state.is_player_has_chance_card():
+        elif position in CHANCE_LOCATIONS:
             chance_card = self.get_chance_card()
             bsmt_action, _rent_amt = state.perform_chance_card_action(chance_card, state)
             if bsmt_action is False:
                 return
-        if state.property_status[position] == Status.UNOWNED:
+        if position in TAX_LOCATIONS:
+            tax = self.board_instance.board_dict[position].tax
+            if state.checkCash(tax, player_id):
+                state.deductCash(tax, player_id)
+            else:
+                # TODO: Phase = BSMT (Mortgage or lose)
+                pass
+        elif state.property_status[position] == Status.UNOWNED:
             if player.buyProperty(state):
                 state.updateBoughtProperty(self.board_instance.board_dict[position])
-        elif position == Constants.JAIL_LOCATION:  # Check if player is in jail
+        elif position == JAIL_LOCATION:  # Check if player is in jail
             jail_decision = player.jailDecision(state)
             if jail_decision == "R":
                 pass
@@ -134,7 +140,7 @@ class Adjudicator:
             elif jail_decision == "P":
                 pass
 
-        elif position == Constants.VISITING_JAIL_LOCATION:
+        elif position == VISITING_JAIL_LOCATION:
             # no action
             return
 
@@ -156,7 +162,7 @@ class Adjudicator:
                         rent_amt = self.board_instance.get_rent(position)
                     state.phase = Phase.PAY_RENT_UNOWNED_PROPERTY
 
-                    if state.checkCash(rent_amt, self.player_instances[player_id]):
+                    if state.checkCash(rent_amt, player_id):
                         state.deductCash(rent_amt, player_id)
                         state.addCash(rent_amt, (player_id + 1) % 2)
                         # TODO: additional info source, cash
@@ -175,7 +181,7 @@ class Adjudicator:
                         rent_amt = self.board_instance.get_rent(position)
                     state.phase = Phase.PAY_RENT_UNOWNED_PROPERTY
 
-                    if state.checkCash(rent_amt, self.player_instances[player_id]):
+                    if state.checkCash(rent_amt, player_id):
                         state.deductCash(rent_amt, player_id)
                         state.addCash(rent_amt, (player_id + 1) % 2)
                         # TODO: additional info source, cash
@@ -311,7 +317,7 @@ class Adjudicator:
                 new_game_state.update_turn_id(turn_id)
                 if new_game_state.additional_info[DOUBLES_COUNT][turn_id % 2] == 3:
                     new_game_state.additional_info[DOUBLES_COUNT][turn_id % 2] = 0
-                    new_game_state.move_player_to_position(Constants.JAIL_LOCATION)
+                    new_game_state.move_player_to_position(JAIL_LOCATION)
                 else:
                     # Updating position of player
                     new_game_state.update_player_position(dice.get_dice_roll1() + dice.get_dice_roll2())

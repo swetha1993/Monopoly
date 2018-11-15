@@ -139,12 +139,8 @@ class GameState:
             pos = self.players_position[1]
         return pos
 
-    def is_player_has_chance_card(self):
-        pos = self.get_player_position()
-        if pos in Constants.CHANCE_LOCATIONS:
-            return True
+    def checkCash(self, cash, player_id):
+        if player_id == 0:
+            return cash >= self.players_position[0]
         else:
-            return False
-
-    def checkCash(self, rent_amt, player):
-        return True
+            return cash >= self.players_position[1]

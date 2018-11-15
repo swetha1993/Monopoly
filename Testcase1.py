@@ -71,6 +71,7 @@ def testCommunityChestCard(adjudicator):
     winner, state = adjudicator.run_game(p1, p2, dice, [], [6])
 
     state = adjudicator.game_state
+    print(state.players_cash)
     if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER  + 50:
         return False;
 
