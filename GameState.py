@@ -19,9 +19,16 @@ class Phase(Enum):
 
 
 class GameState:
-    def __init__(self, turn_id=0, property_status= np.zeros(42, dtype=int), players_position=(0,0),
-                 players_cash=(INITIAL_CASH_TO_THE_PLAYER, INITIAL_CASH_TO_THE_PLAYER),
-                 phase=Phase.DICE_ROLL, additional_info={}, debt=(0, 0), past_states=[]):
+    def __init__(
+            self,
+            turn_id=0,
+            property_status=np.zeros(42, dtype=int),
+            players_position=(0, 0),
+            players_cash=(INITIAL_CASH_TO_THE_PLAYER, INITIAL_CASH_TO_THE_PLAYER),
+            phase=Phase.DICE_ROLL,
+            additional_info={},
+            debt=(0, 0),
+            past_states=[]):
         self.turn_id = turn_id
         self.property_status = property_status
         self.players_position = players_position
@@ -92,8 +99,27 @@ class GameState:
         self.deductCash(bid_amt, player_id)
         self.phase = Phase.BUY_UNOWNED_PROPERTY.value
 
-    def checkCash(self, amt_req, player_obj):
-        pass
+    def checkCash(self, amt_req, player_id):
+        return self.players_cash[player_id] - self.debt - amt_req > 0
+
+    def retrieve_owner(self, prop_id):
+        if self.property_status[prop_id] > 0:
+            return 0
+        elif self.property_status[prop_id] < 0:
+            return 1
+        else:
+            return -1
+
+    def get_posession_count(self):
+        p1 = 0
+        p2 = 0
+        for prop in self.property_status:
+            if prop > 0:
+                p1 += 1
+            elif prop < 0:
+                p2 += 1
+
+        return p1, p2
 
     def updateMortgagedProperty(self, p):
         player_id = self.turn_id % 2
@@ -146,9 +172,3 @@ class GameState:
         else:
             pos = self.players_position[1]
         return pos
-
-    def checkCash(self, cash, player_id):
-        if player_id == 0:
-            return cash >= self.players_position[0]
-        else:
-            return cash >= self.players_position[1]

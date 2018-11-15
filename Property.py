@@ -23,7 +23,7 @@ class Property(object):
     def __init__(self, id, name, colour, monopoly_size,
                  price, build_cost, default_rent,
                  rent_house_1, rent_house_2, rent_house_3,
-                 rent_house_4, rent_hotel, tax, status=Status.UNOWNED):
+                 rent_house_4, rent_hotel, tax):
         self.name = name
         self.id = id
         self.colour = colour
@@ -38,13 +38,3 @@ class Property(object):
         self.rent_house_4 = rent_house_4
         self.rent_hotel = rent_hotel
         self.tax = tax
-        self.status = status
-
-    @property
-    def owner(self):
-        if self.status.value > 0:
-            return 0
-        elif self.status.value < 0:
-            return 1
-        else:
-            return -1
