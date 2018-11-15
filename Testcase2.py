@@ -15,7 +15,7 @@ class Player1(object):
         pass
 
     def buyProperty(self, state):
-        pass
+        return True
 
     def auctionProperty(self, state):
         pass
@@ -41,7 +41,7 @@ class Player2(object):
         pass
 
     def buyProperty(self, state):
-        pass
+        return True
 
     def auctionProperty(self, state):
         pass
@@ -72,13 +72,15 @@ class Player4(Player1):
     def buyProperty(self, state):
         return False
 
+    def auctionProperty(self, state):
+        return False
+
 
 def testSuccessiveDoubles(adjudicator):
     p1 = Player1(0)
     p2 = Player2(1)
-    dice = [(6, 6), (1, 2),
-            (6, 6), (2, 3),
-            (6, 6)]
+    dice = [(6, 6), (6, 6),
+            (6, 6), (2, 3)]
 
     winner, state = adjudicator.run_game(p1, p2, dice, [], [])
     state = adjudicator.game_state
@@ -109,7 +111,7 @@ def testPlayerBankruptcy(adjudicator):
     p4 = Player4(4)
     dice = [(2, 3),(1, 2),
             (6, 4),(1, 2),
-            (2, 2),(1, 2),
+            (3, 1),(1, 2),
             (2, 4), (2, 3),
             (6,4)]
 
@@ -122,16 +124,16 @@ def testPlayerBankruptcy(adjudicator):
 
 
 tests = [
-    testSuccessiveDoubles,
-    testCollectSalaryOnPassingThroughGo,
+    # testSuccessiveDoubles,
+    # testCollectSalaryOnPassingThroughGo,
     testPlayerBankruptcy
 ]
 
 
 def runTests():
-    adjudicator = Adjudicator()
     allPassed = True
     for test in tests:
+        adjudicator = Adjudicator()
         result = test(adjudicator)
     if not result:
         print(test.__name__ + " failed!")

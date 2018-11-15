@@ -117,6 +117,8 @@ class Adjudicator:
             self.communityChestAction(state, player_id)
             return
         elif position in CHANCE_LOCATIONS:
+            if len(self.chance_cards) ==0:
+                return
             chance_card = self.get_chance_card()
             bsmt_action, _rent_amt = state.perform_chance_card_action(chance_card, state)
             if bsmt_action is False:
@@ -128,9 +130,7 @@ class Adjudicator:
             else:
                 # TODO: Phase = BSMT (Mortgage or lose)
                 pass
-        elif state.property_status[position] == Status.UNOWNED:
-            if player.buyProperty(state):
-                state.updateBoughtProperty(self.board_instance.board_dict[position])
+
         elif position == JAIL_LOCATION:  # Check if player is in jail
             jail_decision = player.jailDecision(state)
             if jail_decision == "R":
@@ -147,7 +147,7 @@ class Adjudicator:
         elif state.property_status[position] == Status.UNOWNED.value:
             if player.buyProperty(state):
                 state.updateBoughtProperty(self.board_instance.board_dict[position])
-            else:
+            elif player.auctionProperty(state):
                 self.auction(state)
 
         elif state.property_status[position] != Status.UNOWNED.value:
@@ -321,7 +321,6 @@ class Adjudicator:
                 else:
                     # Updating position of player
                     new_game_state.update_player_position(dice.get_dice_roll1() + dice.get_dice_roll2())
-
                 self.runPlayerOnState(current_player, new_game_state)
 
                 self.game_state = new_game_state
