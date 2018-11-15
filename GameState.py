@@ -43,7 +43,6 @@ class GameState:
         player_id = self.turn_id % 2
         new_position = self.players_position[player_id] + moves
         if new_position > 39:
-            print('here')
             self.addCash(200, player_id)
             new_position = new_position % 39
         if player_id == 0:

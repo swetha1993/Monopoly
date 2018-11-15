@@ -36,6 +36,7 @@ class Adjudicator:
         return next_position
 
     def perform_chance_card_action(self, chance_card, state):
+        #chance_card.print_card()
         next_position = chance_card.position
         id = chance_card.id
         player_id = state.turn_id % 2
@@ -75,7 +76,10 @@ class Adjudicator:
             next_position = current_position - 3
             state.move_player_to_position(next_position)
         elif id == 9:
+            # pending
+            next_position = -1
             state.move_player_to_position(next_position)
+            bsmt_required = True
         elif id == 10:
             to_pay = 0
             for property_status in state.property_status:
@@ -240,9 +244,10 @@ class Adjudicator:
             if len(self.chance_cards) ==0:
                 return
             chance_card = self.get_chance_card()
-            bsmt_action, _rent_amt = state.perform_chance_card_action(chance_card, state)
+            bsmt_action, _rent_amt = self.perform_chance_card_action(chance_card, state)
             if bsmt_action is False:
                 return
+        position = state.players_position[player_id]
         if position in TAX_LOCATIONS:
             tax = self.board_instance.board_dict[position].tax
             if state.checkCash(tax, player_id):
@@ -392,7 +397,8 @@ class Adjudicator:
             state.addCash(abs(card.money), player_id)
         elif card.id == 4:
             # Get out of jail free, this card may be kept until needed
-            state.move_player_to_position(card.position)
+            state.update_jail_free_card(True)
+            #state.move_player_to_position(card.position)
         elif card.id == 5:
             # Go to jail, go directly to jail – Do not pass Go, do not collect $200
             state.move_player_to_position(card.position)
@@ -498,7 +504,7 @@ class Adjudicator:
                     new_game_state.update_player_position(dice.get_dice_roll1() + dice.get_dice_roll2())
                 self.runPlayerOnState(current_player, new_game_state)
                 print(new_game_state.players_cash, new_game_state.players_position)
-
+                print(self.game_state.additional_info)
                 self.game_state = new_game_state
                 if new_game_state.additional_info[DOUBLES_COUNT][turn_id % 2] == 0 or \
                         self.turn_limit == self.dice_index:
