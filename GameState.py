@@ -21,7 +21,7 @@ class Phase(Enum):
 class GameState:
     def __init__(self, turn_id=0, property_status= np.zeros(42, dtype=int), players_position=(0,0),
                  players_cash=(INITIAL_CASH_TO_THE_PLAYER, INITIAL_CASH_TO_THE_PLAYER),
-                 phase=Phase.DICE_ROLL, additional_info={}, debt=None, past_states=[]):
+                 phase=Phase.DICE_ROLL, additional_info={}, debt=(0, 0), past_states=[]):
         self.turn_id = turn_id
         self.property_status = property_status
         self.players_position = players_position
@@ -92,6 +92,9 @@ class GameState:
             self.property_status[prop_id] = Status.OWNED_P2_NO_HOUSES.value
         self.deductCash(bid_amt, player_id)
         self.phase = Phase.BUY_UNOWNED_PROPERTY.value
+
+    def checkCash(self, amt_req, player_obj):
+        pass
 
     def updateMortgagedProperty(self, p):
         player_id = self.turn_id % 2
