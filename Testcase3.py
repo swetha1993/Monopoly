@@ -175,10 +175,13 @@ def testPlayerInJailShouldNotCollect200WhenPassingThroughGO(adjudicator):
     if state.players_position[0] != 3:
         return False
 
-    if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER:
-        return False;
+    if state.players_cash[0] != INITIAL_CASH_TO_THE_PLAYER - 4:
+        return False
 
-    return False
+    if state.players_cash[1] != INITIAL_CASH_TO_THE_PLAYER - 26:
+        return False
+
+    return True
 
 
 
