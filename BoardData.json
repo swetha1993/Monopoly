@@ -1,5 +1,20 @@
 {
   "board": {
+    "-1": {
+      "class": "Jail",
+      "name": "Jail",
+      "monopoly": "None",
+      "monopoly_size": 0,
+      "price": 0,
+      "build_cost": 0,
+      "rent": 0,
+      "rent_house_1": 0,
+      "rent_house_2": 0,
+      "rent_house_3": 0,
+      "rent_house_4": 0,
+      "rent_hotel": 0,
+      "tax": 0
+    },
     "0": {
       "class": "Idle",
       "name": "Go",

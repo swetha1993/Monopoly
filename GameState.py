@@ -1,4 +1,4 @@
-from Constants import INITIAL_CASH_TO_THE_PLAYER
+from Constants import INITIAL_CASH_TO_THE_PLAYER, DOUBLES_COUNT
 from enum import Enum
 from Property import Status
 import copy
@@ -26,6 +26,7 @@ class GameState:
         self.players_cash = players_cash
         self.phase=phase
         self.additional_info= additional_info
+        self.additional_info[DOUBLES_COUNT] = {0: 0, 1: 0}
         self.debt=debt
         self.past_states=past_states
 
@@ -35,11 +36,11 @@ class GameState:
         else:
             self.players_position = (self.players_position, self.players_position[1]+moves)
 
-    def move_player_to_jail(self, jail_location):
+    def move_player_to_position(self, position):
         if self.turn_id % 2 == 0:
-            self.players_position = (jail_location, self.players_position[1])
+            self.players_position = (position, self.players_position[1])
         else:
-            self.players_position = (self.players_position[0], jail_location)
+            self.players_position = (self.players_position[0], position)
 
     def update_turn_id(self, turn_id):
         self.turn_id = turn_id
