@@ -337,8 +337,6 @@ class Adjudicator:
                     # Updating position of player
                     new_game_state.update_player_position(dice.get_dice_roll1() + dice.get_dice_roll2())
                 self.runPlayerOnState(current_player, new_game_state)
-                print(new_game_state.players_cash, new_game_state.players_position)
-
                 self.game_state = new_game_state
                 if new_game_state.additional_info[DOUBLES_COUNT][turn_id % 2] == 0 or self.turn_limit == self.dice_index:
                     break
