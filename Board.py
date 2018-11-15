@@ -51,6 +51,7 @@ class Board:
         for key in data["board"]:
             board_item = board_data[key]
             owner = None
+            id = int(key)
             name = board_item["name"]
             colour = board_item["monopoly"]
             monopoly_size = board_item["monopoly_size"]
@@ -63,12 +64,12 @@ class Board:
             rent_house_4 = board_item["rent_house_4"]
             rent_hotel = board_item["rent_hotel"]
             tax = board_item["tax"]
-            self.board_dict[key] = Property.Property(owner, name, colour, monopoly_size, price, build_cost, rent,
+            self.board_dict[id] = Property.Property(id, owner, name, colour, monopoly_size, price, build_cost, rent,
                                                      rent_house_1, rent_house_2, rent_house_3, rent_house_4,
                                                      rent_hotel, tax)
             if colour not in self.monopoly_groups:
                 self.monopoly_groups[colour] = []
-            self.monopoly_groups[colour].append(self.board_dict[key])
+            self.monopoly_groups[colour].append(self.board_dict[id])
 
         # for key in self.board_dict:
         #     print(key, self.board_dict[key])

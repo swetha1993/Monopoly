@@ -19,10 +19,11 @@ class Status(Enum):
 
 
 class Property(object):
-    def __init__(self, owner, name, colour, monopoly_size, price, build_cost, default_rent, rent_house_1, rent_house_2, rent_house_3,
+    def __init__(self, id, owner, name, colour, monopoly_size, price, build_cost, default_rent, rent_house_1, rent_house_2, rent_house_3,
                  rent_house_4, rent_hotel, status=Status.UNOWNED):
         self.owner = owner
         self.name = name
+        self.id  = id
         self.colour = colour
         self.monopoly_size = monopoly_size
         self.price = price

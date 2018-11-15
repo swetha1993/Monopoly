@@ -19,7 +19,7 @@ class Phase(Enum):
 
 
 class GameState:
-    def __init__(self, turn_id=0, property_status=np.zeros(42), players_position=(0, 0),
+    def __init__(self, turn_id=0, property_status= np.zeros(42, dtype=int), players_position=(0,0),
                  players_cash=(INITIAL_CASH_TO_THE_PLAYER, INITIAL_CASH_TO_THE_PLAYER),
                  phase=Phase.DICE_ROLL, additional_info={}, debt=None, past_states=[]):
         self.turn_id = turn_id
@@ -36,7 +36,7 @@ class GameState:
         if self.turn_id % 2 == 0:
             self.players_position = (self.players_position[0] + moves, self.players_position[1])
         else:
-            self.players_position = (self.players_position, self.players_position[1] + moves)
+            self.players_position = (self.players_position, self.players_position[1]+moves)
 
     def move_player_to_position(self, position):
         if self.turn_id % 2 == 0:
@@ -66,26 +66,26 @@ class GameState:
         player_id = self.turn_id % 2
         self.deductCash(p.price, player_id)
         if player_id == 0:
-            self.property_status[p.id] = Status.OWNED_P1_NO_HOUSES
+            self.property_status[p.id] = Status.OWNED_P1_NO_HOUSES.value
         else:
-            self.property_status[p.id] = Status.OWNED_P2_NO_HOUSES
-        self.phase = Phase.BUY_UNOWNED_PROPERTY
+            self.property_status[p.id] = Status.OWNED_P2_NO_HOUSES.value
+        self.phase = Phase.BUY_UNOWNED_PROPERTY.value
 
     def assign_property(self, player_id, prop_id, bid_amt):
         # Assigning the property with prop_id to player_id in given state
         if player_id == 0:
-            self.property_status[prop_id] = Status.OWNED_P1_NO_HOUSES
+            self.property_status[prop_id] = Status.OWNED_P1_NO_HOUSES.value
         else:
-            self.property_status[prop_id] = Status.OWNED_P2_NO_HOUSES
+            self.property_status[prop_id] = Status.OWNED_P2_NO_HOUSES.value
         self.deductCash(bid_amt, player_id)
-        self.phase = Phase.BUY_UNOWNED_PROPERTY
+        self.phase = Phase.BUY_UNOWNED_PROPERTY.value
 
     def updateMortgagedProperty(self, p):
         player_id = self.turn_id % 2
         if player_id == 0:
-            self.property_status[p.id] = Status.OWNED_P1_MORTGAGED
+            self.property_status[p.id] = Status.OWNED_P1_MORTGAGED.value
         else:
-            self.property_status[p.id] = Status.OWNED_P2_MORTGAGED
+            self.property_status[p.id] = Status.OWNED_P2_MORTGAGED.value
         self.addCash(p.price, player_id)
 
     def updateBuiltHouse(self, p):
@@ -108,9 +108,9 @@ class GameState:
             return False
         player_id = self.turn_id % 2
         if player_id == 0:
-            self.property_status[p.id] = Status.OWNED_P1_HOTEL
+            self.property_status[p.id] = Status.OWNED_P1_HOTEL.value
         else:
-            self.property_status[p.id] = Status.OWNED_P2_HOTEL
+            self.property_status[p.id] = Status.OWNED_P2_HOTEL.value
         self.deductCash(p.build_cost, player_id)
         return True
 
@@ -138,3 +138,6 @@ class GameState:
             return True
         else:
             return False
+
+    def checkCash(self, rent_amt, player):
+        return True
