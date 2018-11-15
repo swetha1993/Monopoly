@@ -15,6 +15,7 @@ class Adjudicator:
         self.player_instances = []
         self.game_state = None
         self.dice_index = 0
+        self.dice_rolls = None
         self.board_instance = Board.Board()
         self.community_chest_cards = None
         self.chance_cards = None
@@ -134,11 +135,24 @@ class Adjudicator:
         elif position == JAIL_LOCATION:  # Check if player is in jail
             jail_decision = player.jailDecision(state)
             if jail_decision == "R":
-                pass
+                limit = max(self.turn_limit, self.dice_index + 3, len(self.dice_rolls))
+                while self.dice_index < limit:
+                    dice = Utility.Dice(self.dice_rolls[self.dice_index][0], self.dice_rolls[self.dice_index][1])
+                    if self.dice_rolls[self.dice_index][0] == self.dice_rolls[self.dice_index][1]:
+                        #TODO: Phase = BSMT (Mortgage or lose)
+                        pass
+                    self.dice_index += 1
             elif jail_decision == "C":
-                pass
+                if state.additional_info[JAIL_FREE_CARD][player_id]:
+                    state.additional_info[JAIL_FREE_CARD][player_id] = False
+                    state.move_player_to_position(0)
             elif jail_decision == "P":
-                pass
+                if state.checkCash(50, player_id):
+                    state.deductCash(50, player_id)
+                    state.move_player_to_position(0)
+                else:
+                    # TODO: phase = BSMT (Mortgage or lose)
+                    pass
 
         elif position == VISITING_JAIL_LOCATION:
             # no action
@@ -291,6 +305,7 @@ class Adjudicator:
         self.game_state = GameState()
         turn_id = self.game_state.turn_id
         self.chance_cards = chance_cards
+        self.dice_rolls = dice_rolls
         self.community_chest_cards = community_chest_cards
 
         if dice_rolls is not None:
@@ -322,6 +337,7 @@ class Adjudicator:
                     # Updating position of player
                     new_game_state.update_player_position(dice.get_dice_roll1() + dice.get_dice_roll2())
                 self.runPlayerOnState(current_player, new_game_state)
+                print(new_game_state.players_cash, new_game_state.players_position)
 
                 self.game_state = new_game_state
                 if new_game_state.additional_info[DOUBLES_COUNT][turn_id % 2] == 0 or self.turn_limit == self.dice_index:

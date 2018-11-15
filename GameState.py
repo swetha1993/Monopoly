@@ -40,10 +40,16 @@ class GameState:
             self.additional_info[JAIL_FREE_CARD][1] = status
 
     def update_player_position(self, moves):
-        if self.turn_id % 2 == 0:
-            self.players_position = (self.players_position[0] + moves, self.players_position[1])
+        player_id = self.turn_id % 2
+        new_position = self.players_position[player_id] + moves
+        if new_position > 39:
+            print('here')
+            self.addCash(200, player_id)
+            new_position = new_position % 39
+        if player_id == 0:
+            self.players_position = (new_position, self.players_position[1])
         else:
-            self.players_position = (self.players_position[0], self.players_position[1]+moves)
+            self.players_position = (self.players_position[0], new_position)
 
     def move_player_to_position(self, position):
         if self.turn_id % 2 == 0:
