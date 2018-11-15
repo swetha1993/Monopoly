@@ -8,7 +8,6 @@ from Constants import *
 
 
 class Adjudicator:
-
     def __init__(self):
         self.turn_limit = TURN_LIMIT
         self.player_count = PLAYER_COUNT
@@ -20,16 +19,18 @@ class Adjudicator:
         self.community_chest_cards = None
         self.chance_cards = None
 
-    def get_nearest_railroad(self, current_position):
+    @staticmethod
+    def get_nearest_railroad(current_position):
         index = bisect.bisect_right(RAIL_ROAD_LOCATIONS, current_position)
-        if index == RAIL_ROAD_LOCATIONS.__len__():
+        if index == len(RAIL_ROAD_LOCATIONS):
             index = 0
         next_position = RAIL_ROAD_LOCATIONS[index]
         return next_position
 
-    def get_nearest_utility(self, current_position):
+    @staticmethod
+    def get_nearest_utility(current_position):
         index = bisect.bisect_right(UTILITY_LOCATIONS, current_position)
-        if index == UTILITY_LOCATIONS.__len__():
+        if index == len(UTILITY_LOCATIONS):
             index = 0
         next_position = UTILITY_LOCATIONS[index]
         return next_position
@@ -54,16 +55,14 @@ class Adjudicator:
                 state.addCash(chance_card.money, player_id)
             state.move_player_to_position(next_position)
         elif id == 3:
-            # pending
-            # need to calculate the position
-            next_position = self.get_nearest_utility()
+            next_position = self.get_nearest_utility(current_position)
             state.move_player_to_position(next_position)
             dice = Utility.Dice()
             dice.perform_roll()
             dice_value = dice.get_dice_roll1() + dice.get_dice_roll2()
             rent_amt = 10 * dice_value
-        elif id == 4 or id == 5:
-            next_position = self.get_nearest_railroad()
+        elif id in [4, 5]:
+            next_position = self.get_nearest_railroad(current_position)
             state.move_player_to_position(next_position)
             bsmt_required = True
             rent_factor = 2
@@ -77,8 +76,6 @@ class Adjudicator:
             next_position = current_position - 3
             state.move_player_to_position(next_position)
         elif id == 9:
-            # pending
-            next_position = -1
             state.move_player_to_position(next_position)
             bsmt_required = True
         elif id == 10:
@@ -93,10 +90,10 @@ class Adjudicator:
         elif id == 11:
             state.deductCash(chance_card.money, player_id)
         elif id == 12:
-            # pending bsmt required ?
+            # TODO: pending bsmt required ?
             state.move_player_to_position(next_position)
         elif id == 13:
-            # pending bsmt required ?
+            # TODO: pending bsmt required ?
             state.move_player_to_position(next_position)
         elif id == 14:
             next_player_id = (player_id + 1) % 2
@@ -112,6 +109,123 @@ class Adjudicator:
         self.chance_cards.append(chance_index)
         return self.board_instance.chance_cards[chance_index]
 
+    def perform_bsmt_action(self, bsmtaction, state):
+        action = bsmtaction[0]
+
+        if action == "B":
+            self.handle_buy(bsmtaction, state)
+        elif action == "S":
+            self.handle_sell(bsmtaction, state)
+        elif action == "M":
+            self.handle_mortgage(bsmtaction, state)
+        elif action == "T":
+            self.handle_trade(bsmtaction, state)
+
+    def can_trade(self, bsmtaction, state):
+        current_player_id = state.turn_id % 2
+        other_player = (current_player_id + 1) % 2
+
+        cashoffer, propoffer, cashreq, propreq = bsmtaction[1]
+        if state.players_cash[current_player_id] < cashoffer:
+            return False
+        elif state.players_cash[other_player] < cashreq:
+            return False
+
+        for pid in propoffer:
+            if state.retrieve_owner(pid) != current_player_id:
+                return False
+
+        for pid in propreq:
+            if state.retrieve_owner(pid) != other_player:
+                return False
+
+        return True
+
+    def handle_trade(self, bsmtaction, state):
+        current_player_id = state.turn_id % 2
+        other_player = self.player_instances[(current_player_id + 1) % 2]
+        cashoffer, propoffer, cashreq, propreq = bsmtaction[1]
+        if self.can_trade(bsmtaction, state):
+            is_accepted = other_player.respondTrade(state)
+            if not is_accepted:
+                return
+            state.players_cash[current_player_id] += cashreq - cashoffer
+            state.players_cash[(current_player_id + 1) % 2] += cashoffer - cashreq
+            for pid in propoffer:
+                state.property_status[pid] *= -1
+            for pid in propreq:
+                state.property_status[pid] *= -1
+
+    def can_mortgage(self, state, prop_id, current_player_id):
+        if state.retrieve_owner(prop_id) != current_player_id:
+            return False
+        if abs(state.property_status[prop_id]) == Status.OWNED_P1_MORTGAGED.value:
+            return False
+        return True
+
+    def handle_mortgage(self, bsmtaction, state):
+        current_player_id = state.turn_id % 2
+        for pid in bsmtaction[1]:
+            if self.can_mortgage(state, pid, current_player_id):
+                # TODO: Handle houses
+                state.players_cash[current_player_id] += int(self.board_instance.board_dict[pid].price / 2)
+                state.property_status[pid] = Status.OWNED_P1_MORTGAGED.value if not \
+                    current_player_id else Status.OWNED_P2_MORTGAGED.value
+
+    def can_buy(self, state, prop_id, numhouses, player_id):
+        # TODO: Check group and color properties
+        req_houses = numhouses + abs(state.property_status[prop_id].value) - 1
+        if state.retrieve_owner(prop_id) != player_id:
+            return False
+        if req_houses < 0 or req_houses > 5:
+            return False
+        if abs(state.property_status[prop_id]) in [Status.OWNED_P1_MORTGAGED.value, Status.OWNED_P1_NO_HOUSES.value]:
+            return False
+        return True
+
+    def handle_buy(self, bsmtaction, state):
+        current_player_id = state.turn_id % 2
+        player_debt = state.debt[current_player_id]
+        player_cash = state.players_cash[current_player_id] - player_debt
+
+        cost = 0
+        for id, prop in bsmtaction[1]:
+            if self.can_buy(state, id, prop, current_player_id):
+                cost += prop * int(self.board_instance.board_dict[id].build_cost / 2)
+
+        if cost < player_cash:
+            return
+
+        for id, prop in bsmtaction[1]:
+            if current_player_id == 0:
+                state.property_status[id] += prop
+            else:
+                state.property_status[id] -= prop
+            state.deductCash(self.board_instance.board_dict[id].build_cost * prop, current_player_id)
+
+    def can_sell(self, state, prop_id, numhouses, player_id):
+        if state.retrieve_owner(prop_id) != player_id:
+            return False
+        if numhouses < 0 or numhouses > 5:
+            return False
+        if abs(state.property_status[prop_id]) in [Status.OWNED_P1_MORTGAGED.value, Status.OWNED_P1_NO_HOUSES.value]:
+            return False
+        if numhouses > abs(state.property_status[prop_id]) - 1:
+            return False
+        return True
+
+    def handle_sell(self, bsmtaction, state):
+        current_player_id = state.turn_id % 2
+
+        cost = 0
+        for id, prop in bsmtaction[1]:
+            if self.can_sell(state, id, prop, current_player_id):
+                cost = cost + prop * int(self.board_instance.board_dict[id].build_cost / 2)
+                state.property_status[id] = Status.OWNED_P1_NO_HOUSES if not current_player_id \
+                    else Status.OWNED_P2_NO_HOUSES
+
+        state.players_cash[current_player_id] += cost
+
     def runPlayerOnState(self, player, state):
         # Fetch player position
         player_id = state.turn_id % 2
@@ -119,32 +233,31 @@ class Adjudicator:
         _rent_amt = None
         if position in COMMUNITY_CHEST_LOCATIONS:
             self.communityChestAction(state, player_id)
-            return
+            return None, state
         elif position in CHANCE_LOCATIONS:
             if len(self.chance_cards) == 0:
-                return
+                return None, state
             chance_card = self.get_chance_card()
             bsmt_action, _rent_amt = self.perform_chance_card_action(chance_card, state)
             if bsmt_action is False:
-                return
-        position = state.players_position[player_id]
+                return None, state
         if position in TAX_LOCATIONS:
             tax = self.board_instance.board_dict[position].tax
             if state.checkCash(tax, player_id):
                 state.deductCash(tax, player_id)
             else:
-                # TODO: Phase = BSMT (Mortgage or lose)
-                pass
+                return (player_id + 1) % 2, state
 
         elif position == JAIL_LOCATION:  # Check if player is in jail
             jail_decision = player.jailDecision(state)
             if jail_decision == "R":
                 limit = min(self.turn_limit, self.dice_index + 3, len(self.dice_rolls))
                 while self.dice_index < limit:
+                    # TODO: Check logic
                     dice = Utility.Dice(self.dice_rolls[self.dice_index][0], self.dice_rolls[self.dice_index][1])
                     if self.dice_rolls[self.dice_index][0] == self.dice_rolls[self.dice_index][1]:
-                        # TODO: Phase = BSMT (Mortgage or lose)
-                        pass
+                        state.move_player_to_position(0)
+
                     self.dice_index += 1
             elif jail_decision == "C":
                 print("state.additional_info", state.additional_info)
@@ -157,63 +270,107 @@ class Adjudicator:
                     state.deductCash(50, player_id)
                     state.move_player_to_position(0)
                 else:
-                    # TODO: phase = BSMT (Mortgage or lose)
-                    pass
+                    return (player_id + 1) % 2, state
 
+        # no action to be taken
         elif position == VISITING_JAIL_LOCATION:
-            # no action
-            return
+            return None, state
 
+        # Unowned property
         elif state.property_status[position] == Status.UNOWNED.value:
+            # check buy property decision from player
             if player.buyProperty(state):
                 state.updateBoughtProperty(self.board_instance.board_dict[position])
+            # Start auction
             elif player.auctionProperty(state):
                 self.auction(state)
 
+        # Owned property
         elif state.property_status[position] != Status.UNOWNED.value:
-            # Owned property
-
+            # First Player
             if player_id == 0:
+                # Owned by p2 and p1 landed on it
                 if state.property_status[position] < 0:
-                    # Owned by p2 and p1 landed on it
+                    # Get rent amt
                     if _rent_amt is not None:
                         rent_amt = _rent_amt
                     else:
                         rent_amt = self.board_instance.get_rent(position)
-                    print("rent_amt: ", rent_amt, position)
-                    state.phase = Phase.PAY_RENT_UNOWNED_PROPERTY
 
-                    if state.checkCash(rent_amt, player_id):
-                        state.deductCash(rent_amt, player_id)
-                        state.addCash(rent_amt, (player_id + 1) % 2)
-                        # TODO: additional info source, cash
+                    # Go for BSMT
+                    state.phase = Phase.BSMT
+                    state.debt[player_id] += rent_amt
+                    bsmt_action = player.getBMSTDecision(state)
+
+                    # If BSMT action is None
+                    if not bsmt_action:
+                        # Pay rent using player cash
+                        if state.checkCash(0, player_id):
+                            state.deductCash(state.debt[player_id], player_id)
+                            state.addCash(rent_amt, (player_id + 1) % 2)
+                            state.debt[player_id] = 0
+                        else:
+                            # Declare winner!!
+                            return self.player_instances[(player_id + 1) % 2], state
                     else:
-                        # TODO: Phase = BSMT (Mortgage or lose)
-                        pass
+                        # Execute BSMT action according to player
+                        self.perform_bsmt_action(bsmt_action, state)
+                        # Pay rent using player cash
+                        if state.checkCash(0, player_id):
+                            state.deductCash(state.debt[player_id], player_id)
+                            state.addCash(rent_amt, (player_id + 1) % 2)
+                            state.debt[player_id] = 0
+                        else:
+                            # Declare winner!!
+                            return self.player_instances[(player_id + 1) % 2], state
                 else:
-                    # TODO: Phase = BSMT & additional info
-                    pass
+                    # Owned by p1 and p1 landed on it
+                    # Go for BSMT
+                    state.phase = Phase.BSMT
+                    bsmt_action = player.getBMSTDecision(state)
+                    self.perform_bsmt_action(bsmt_action, state)
+            # Second player
             else:
+                # Owned by p1 and p2 landed on it
                 if state.property_status[position] > 0:
-                    # Owned by p1 and p2 landed on it
+                    # Get rent amt
                     if _rent_amt is not None:
                         rent_amt = _rent_amt
                     else:
                         rent_amt = self.board_instance.get_rent(position)
-                    state.phase = Phase.PAY_RENT_UNOWNED_PROPERTY
 
-                    if state.checkCash(rent_amt, player_id):
-                        state.deductCash(rent_amt, player_id)
-                        state.addCash(rent_amt, (player_id + 1) % 2)
-                        # TODO: additional info source, cash
+                    # Go for BSMT
+                    state.phase = Phase.BSMT
+                    state.debt[player_id] += rent_amt
+                    bsmt_action = player.getBMSTDecision(state)
+
+                    # If BSMT action is None
+                    if not bsmt_action:
+                        # Pay rent using player cash
+                        if state.checkCash(rent_amt, player_id):
+                            state.deductCash(rent_amt, player_id)
+                            state.addCash(rent_amt, (player_id + 1) % 2)
+                            state.debt[player_id] = 0
+                        else:
+                            # Declare winner!!
+                            return self.player_instances[(player_id + 1) % 2], state
                     else:
-                        # TODO: Phase = BSMT (Mortgage or lose)
-                        pass
+                        # Execute BSMT action according to player
+                        self.perform_bsmt_action(bsmt_action, state)
+                        # Pay rent using player cash
+                        if state.checkCash(rent_amt, player_id):
+                            state.deductCash(rent_amt, player_id)
+                            state.addCash(rent_amt, (player_id + 1) % 2)
+                            state.debt[player_id] = 0
+                        else:
+                            # Declare winner!!
+                            return self.player_instances[(player_id + 1) % 2], state
                 else:
-                    # TODO: Phase = BSMT & additional info
-                    pass
-
-        # bmst = player.getBMSTDecision(state)
+                    # Owned by p2 and p2 landed on it
+                    # Go for BSMT
+                    state.phase = Phase.BSMT
+                    bsmt_action = player.getBMSTDecision(state)
+                    self.perform_bsmt_action(bsmt_action, state)
 
     def communityChestAction(self, state, player_id):
         if len(self.community_chest_cards) == 0:
@@ -303,14 +460,12 @@ class Adjudicator:
         else:
             state.assign_property(opponent_id, prop_id, opp_bid)
 
-    def broad_cast_state(self, player1, player2, state):
-        pass
-
     def get_current_player(self, turn_id):
         player_id = turn_id % self.player_count
         return self.player_instances[player_id]
 
-    def run_game(self, player1, player2, dice_rolls=None, chance_cards=None, community_chest_cards=None):
+    def run_game(self, player1, player2, dice_rolls=None,
+                 chance_cards=None, community_chest_cards=None):
         self.player_instances = [player1, player2]
         self.game_state = GameState()
         # turn_id = self.game_state.turn_id
@@ -326,7 +481,6 @@ class Adjudicator:
             sub_turn_id = 0
             current_player = self.get_current_player(self.game_state.turn_id)
             while True:
-                dice = None
                 if dice_rolls is not None:
                     dice = Utility.Dice(dice_rolls[self.dice_index][0], dice_rolls[self.dice_index][1])
                     self.dice_index += 1
@@ -357,9 +511,10 @@ class Adjudicator:
                 else:
                     # Updating position of player
                     new_game_state.update_player_position(dice.get_dice_roll1() + dice.get_dice_roll2())
-                self.runPlayerOnState(current_player, new_game_state)
-                # print(new_game_state.players_cash, new_game_state.players_position)
-                # print(self.game_state.additional_info)
+                winner, state = self.runPlayerOnState(current_player, new_game_state)
+                if winner:
+                    break
+
                 self.game_state = new_game_state
                 if new_game_state.additional_info[DOUBLES_COUNT][
                     self.game_state.turn_id % 2] == 0 or self.turn_limit == self.dice_index:
@@ -367,10 +522,7 @@ class Adjudicator:
                 sub_turn_id += 1
 
             self.game_state.turn_id += 1
-        return 1, 2  # Needs to be changed to winner, gamestate
-
-    def complete_player_move(self):
-        pass
+        return winner, state
 
 
 if __name__ == '__main__':
