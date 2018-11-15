@@ -157,9 +157,9 @@ def runTests():
     allPassed = True
     for test in tests:
         result = test(adjudicator)
-    if not result:
-        print(test.__name__ + " failed!")
-        allPassed = False
+        if not result:
+            print(test.__name__ + " failed!")
+            allPassed = False
     if allPassed: print("All tests passed!")
 
 

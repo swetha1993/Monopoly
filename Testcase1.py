@@ -82,7 +82,7 @@ def testCommunityChestCard(adjudicator):
 def testIncomeTax(adjudicator):
     p1 =  Player1(0)
     p2 =  Player2(1)
-    dice = [(1, 1)]
+    dice = [(3, 1)]
 
     winner, state = adjudicator.run_game(p1, p2, dice, [], [])
     state = adjudicator.game_state
@@ -92,7 +92,7 @@ def testIncomeTax(adjudicator):
     return False  
 	
 tests = [
-	#testIncomeTax,
+	testIncomeTax,
 	testPayRent,
     testCommunityChestCard
 ]
@@ -103,9 +103,9 @@ def runTests():
     for test in tests:
         adjudicator = Adjudicator()
         result = test(adjudicator)
-    if not result:
-        print(test.__name__ + " failed!")
-        allPassed = False
+        if not result:
+            print(test.__name__ + " failed!")
+            allPassed = False
     if allPassed: print("All tests passed!")
 
 runTests()	
