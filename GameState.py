@@ -81,6 +81,12 @@ class GameState:
         else:
             self.players_cash = (self.players_cash[0], self.players_cash[1] - cash)
 
+    def update_debt(self, debt_amount):
+        if self.turn_id % 2 == 0:
+            self.debt = (self.debt[0] + debt_amount, self.debt[1])
+        else:
+            self.debt = (self.debt[0], self.debt[1] + debt_amount)
+
     def updateBoughtProperty(self, p):
         player_id = self.turn_id % 2
         self.deductCash(p.price, player_id)
@@ -100,7 +106,7 @@ class GameState:
         self.phase = Phase.BUY_UNOWNED_PROPERTY.value
 
     def checkCash(self, amt_req, player_id):
-        return self.players_cash[player_id] - self.debt - amt_req > 0
+        return self.players_cash[player_id] - self.debt[player_id] - amt_req > 0
 
     def retrieve_owner(self, prop_id):
         if self.property_status[prop_id] > 0:

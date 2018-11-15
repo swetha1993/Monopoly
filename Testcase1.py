@@ -75,7 +75,6 @@ def testCommunityChestCard(adjudicator):
 
     if state.players_cash[1] == INITIAL_CASH_TO_THE_PLAYER - 50:
         return True;
-    print(state.players_cash)
     return False
 
 
@@ -93,7 +92,7 @@ def testIncomeTax(adjudicator):
 	
 tests = [
 	testIncomeTax,
-	testPayRent,
+    testPayRent,
     testCommunityChestCard
 ]
 

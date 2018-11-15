@@ -36,7 +36,7 @@ class Adjudicator:
         return next_position
 
     def perform_chance_card_action(self, chance_card, state):
-        # chance_card.print_card()
+        #chance_card.print_card()
         next_position = chance_card.position
         id = chance_card.id
         player_id = state.turn_id % 2
@@ -77,7 +77,7 @@ class Adjudicator:
             state.move_player_to_position(next_position)
         elif id == 9:
             state.move_player_to_position(next_position)
-            bsmt_required = True
+            bsmt_required = False
         elif id == 10:
             to_pay = 0
             for property_status in state.property_status:
@@ -168,7 +168,9 @@ class Adjudicator:
         for pid in bsmtaction[1]:
             if self.can_mortgage(state, pid, current_player_id):
                 # TODO: Handle houses
-                state.players_cash[current_player_id] += int(self.board_instance.board_dict[pid].price / 2)
+                #state.players_cash[current_player_id] += int(self.board_instance.board_dict[pid].price / 2)
+                cash = int(self.board_instance.board_dict[pid].price / 2)
+                state.addCash(cash, current_player_id)
                 state.property_status[pid] = Status.OWNED_P1_MORTGAGED.value if not \
                     current_player_id else Status.OWNED_P2_MORTGAGED.value
 
@@ -179,7 +181,7 @@ class Adjudicator:
             return False
         if req_houses < 0 or req_houses > 5:
             return False
-        if abs(state.property_status[prop_id]) in [Status.OWNED_P1_MORTGAGED.value, Status.OWNED_P1_NO_HOUSES.value]:
+        if abs(state.property_status[prop_id]) in [Status.OWNED_P1_MORTGAGED.value, Status.UNOWNED.value]:
             return False
         return True
 
@@ -241,10 +243,12 @@ class Adjudicator:
             bsmt_action, _rent_amt = self.perform_chance_card_action(chance_card, state)
             if bsmt_action is False:
                 return None, state
+        position = state.players_position[player_id]
         if position in TAX_LOCATIONS:
             tax = self.board_instance.board_dict[position].tax
             if state.checkCash(tax, player_id):
                 state.deductCash(tax, player_id)
+                return None, state
             else:
                 return (player_id + 1) % 2, state
 
@@ -256,13 +260,13 @@ class Adjudicator:
                     # TODO: Check logic
                     dice = Utility.Dice(self.dice_rolls[self.dice_index][0], self.dice_rolls[self.dice_index][1])
                     if self.dice_rolls[self.dice_index][0] == self.dice_rolls[self.dice_index][1]:
-                        state.move_player_to_position(0)
-
+                        state.move_player_to_position(self.dice_rolls[self.dice_index][0] + self.dice_rolls[self.dice_index][1])
+                        self.dice_index += 1
+                        break
                     self.dice_index += 1
+
             elif jail_decision == "C":
-                print("state.additional_info", state.additional_info)
                 if state.additional_info[JAIL_FREE_CARD][player_id]:
-                    print("--state.additional_info", state.additional_info)
                     state.additional_info[JAIL_FREE_CARD][player_id] = False
                     state.move_player_to_position(0)
             elif jail_decision == "P":
@@ -299,7 +303,8 @@ class Adjudicator:
 
                     # Go for BSMT
                     state.phase = Phase.BSMT
-                    state.debt[player_id] += rent_amt
+                    # state.debt[player_id] += rent_amt
+                    state.update_debt(rent_amt)
                     bsmt_action = player.getBMSTDecision(state)
 
                     # If BSMT action is None
@@ -308,7 +313,8 @@ class Adjudicator:
                         if state.checkCash(0, player_id):
                             state.deductCash(state.debt[player_id], player_id)
                             state.addCash(rent_amt, (player_id + 1) % 2)
-                            state.debt[player_id] = 0
+                            state.update_debt(0)
+                            # state.debt[player_id] = 0
                         else:
                             # Declare winner!!
                             return self.player_instances[(player_id + 1) % 2], state
@@ -319,7 +325,8 @@ class Adjudicator:
                         if state.checkCash(0, player_id):
                             state.deductCash(state.debt[player_id], player_id)
                             state.addCash(rent_amt, (player_id + 1) % 2)
-                            state.debt[player_id] = 0
+                            state.update_debt(0)
+                            # state.debt[player_id] = 0
                         else:
                             # Declare winner!!
                             return self.player_instances[(player_id + 1) % 2], state
@@ -341,16 +348,18 @@ class Adjudicator:
 
                     # Go for BSMT
                     state.phase = Phase.BSMT
-                    state.debt[player_id] += rent_amt
+                    # state.debt[player_id] += rent_amt
+                    state.update_debt(rent_amt)
                     bsmt_action = player.getBMSTDecision(state)
 
                     # If BSMT action is None
                     if not bsmt_action:
                         # Pay rent using player cash
-                        if state.checkCash(rent_amt, player_id):
-                            state.deductCash(rent_amt, player_id)
+                        if state.checkCash(0, player_id):
+                            state.deductCash(state.debt[player_id], player_id)
                             state.addCash(rent_amt, (player_id + 1) % 2)
-                            state.debt[player_id] = 0
+                            state.update_debt(0)
+                            # state.debt[player_id] = 0
                         else:
                             # Declare winner!!
                             return self.player_instances[(player_id + 1) % 2], state
@@ -359,9 +368,10 @@ class Adjudicator:
                         self.perform_bsmt_action(bsmt_action, state)
                         # Pay rent using player cash
                         if state.checkCash(rent_amt, player_id):
-                            state.deductCash(rent_amt, player_id)
+                            state.deductCash(state.debt[player_id], player_id)
                             state.addCash(rent_amt, (player_id + 1) % 2)
-                            state.debt[player_id] = 0
+                            state.update_debt(0)
+                            # state.debt[player_id] = 0
                         else:
                             # Declare winner!!
                             return self.player_instances[(player_id + 1) % 2], state
@@ -371,6 +381,7 @@ class Adjudicator:
                     state.phase = Phase.BSMT
                     bsmt_action = player.getBMSTDecision(state)
                     self.perform_bsmt_action(bsmt_action, state)
+        return None, state
 
     def communityChestAction(self, state, player_id):
         if len(self.community_chest_cards) == 0:
@@ -466,6 +477,7 @@ class Adjudicator:
 
     def run_game(self, player1, player2, dice_rolls=None,
                  chance_cards=None, community_chest_cards=None):
+
         self.player_instances = [player1, player2]
         self.game_state = GameState()
         # turn_id = self.game_state.turn_id
@@ -481,24 +493,25 @@ class Adjudicator:
             sub_turn_id = 0
             current_player = self.get_current_player(self.game_state.turn_id)
             while True:
-                if dice_rolls is not None:
-                    dice = Utility.Dice(dice_rolls[self.dice_index][0], dice_rolls[self.dice_index][1])
-                    self.dice_index += 1
-                else:
-                    dice = Utility.Dice()
-                    dice.perform_roll()
                 new_game_state = self.game_state.get_game_state()
 
                 player_position = new_game_state.get_player_position()
 
                 if player_position == JAIL_LOCATION:
                     new_game_state.update_turn_id(self.game_state.turn_id)
-                    if dice.get_dice_roll1() == dice.get_dice_roll2():
-                        new_game_state.update_player_position(
-                            dice.get_dice_roll1() + dice.get_dice_roll2())
-                    self.runPlayerOnState(current_player, new_game_state)
+                    # if dice.get_dice_roll1() == dice.get_dice_roll2():
+                    # new_game_state.update_player_position(dice.get_dice_roll1() + dice.get_dice_roll2())
+                    winner, state = self.runPlayerOnState(current_player, new_game_state)
                     self.game_state = new_game_state
                     break
+
+                if dice_rolls is not None:
+                    dice = Utility.Dice(dice_rolls[self.dice_index][0], dice_rolls[self.dice_index][1])
+                    self.dice_index += 1
+                else:
+                    dice = Utility.Dice()
+                    dice.perform_roll()
+
 
                 if dice.is_double():
                     new_game_state.additional_info[DOUBLES_COUNT][self.game_state.turn_id % 2] += 1
