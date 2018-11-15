@@ -15,6 +15,8 @@ class Adjudicator:
         self.player_instances = []
         self.game_state = None
         self.board_instance = Board.Board()
+        self.community_chest_cards= None
+        self.chance_cards= None
 
     def perform_chance_card_action(self, chance_card, state):
         next_position = chance_card.position
@@ -145,8 +147,9 @@ class Adjudicator:
         # bmst = player.getBMSTDecision(state)
 
     def communityChestAction(self, state, player_id):
-        card = self.board_instance.community_cards.pop(0)
-        self.board_instance.community_cards.append(card)
+        id=self.community_chest_cards.pop(0)
+        self.community_chest_cards.append(id)
+        card = self.board_instance.community_cards[id]
         if card.id == 0:
             # Advance to Go (Collect $200)
             state.move_player_to_position(card.position)
@@ -169,6 +172,10 @@ class Adjudicator:
         elif card.id == 6:
             # Grand Opera Night. Collect $50 from every player for opening night seats.
             state.addCash(card.money, player_id)
+            if player_id==1:
+                state.deductCash(card.money, 0)
+            else:
+                state.deductCash(card.money, 1)
         elif card.id == 7:
             # Holiday Fund matures - Receive $100
             state.addCash(card.money, player_id)
@@ -233,6 +240,9 @@ class Adjudicator:
         self.player_instances = [player1, player2]
         self.game_state = GameState()
         turn_id = self.game_state.turn_id
+        self.chance_cards = chance_cards
+        self.community_chest_cards = community_chest_cards
+
         if dice_rolls is not None:
             self.turn_limit = len(dice_rolls)
         while turn_id < self.turn_limit:

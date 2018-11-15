@@ -105,7 +105,6 @@ def runTests():
         result = test(adjudicator)
     if not result:
         print(test.__name__ + " failed!")
-        print(test.__name__ + " failed!")
         allPassed = False
     if allPassed: print("All tests passed!")
 
