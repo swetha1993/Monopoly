@@ -293,13 +293,11 @@ class Adjudicator:
 
         if dice_rolls is not None:
             self.turn_limit = len(dice_rolls)
-
         while self.dice_index < self.turn_limit:
 
             self.game_state.past_states.append(self.game_state)
             sub_turn_id = 0
             current_player = self.get_current_player(turn_id)
-
             while True:
                 dice = None
                 if dice_rolls is not None:
@@ -325,12 +323,10 @@ class Adjudicator:
                 self.runPlayerOnState(current_player, new_game_state)
 
                 self.game_state = new_game_state
-                if new_game_state.additional_info[DOUBLES_COUNT][turn_id % 2] == 0:
+                if new_game_state.additional_info[DOUBLES_COUNT][turn_id % 2] == 0 or self.turn_limit == self.dice_index:
                     break
                 sub_turn_id += 1
 
-            # print(turn_id, current_player.get_id(), dice.get_dice_roll1(), dice.get_dice_roll2(),
-            #       current_player.doubles_count)
             turn_id += 1
         return 1, 2  # Needs to be changed to winner, gamestate
 

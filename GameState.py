@@ -43,7 +43,7 @@ class GameState:
         if self.turn_id % 2 == 0:
             self.players_position = (self.players_position[0] + moves, self.players_position[1])
         else:
-            self.players_position = (self.players_position, self.players_position[1]+moves)
+            self.players_position = (self.players_position[0], self.players_position[1]+moves)
 
     def move_player_to_position(self, position):
         if self.turn_id % 2 == 0:
