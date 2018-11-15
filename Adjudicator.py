@@ -40,7 +40,7 @@ class Adjudicator:
         player_id = state.turn_id % 2
         current_position = state.get_player_position()
         bsmt_required = False
-        rent_factor = 1
+        rent_amt = None
         if id == 0:
             state.move_player_to_position(next_position)
             state.addCash(chance_card.money, player_id)
@@ -57,18 +57,21 @@ class Adjudicator:
             # need to calculate the position
             next_position = self.get_nearest_utility()
             state.move_player_to_position(next_position)
+            dice = Utility.Dice()
+            dice.perform_roll()
+            dice_value = dice.get_dice_roll1() + dice.get_dice_roll2()
+            rent_amt = 10 * dice_value
         elif id == 4 or id == 5:
-            # pending
-            # need to calculate the position
             next_position = self.get_nearest_railroad()
             state.move_player_to_position(next_position)
             bsmt_required = True
             rent_factor = 2
+            rent_amt = rent_factor*self.board_instance.get_rent(next_position)
+            state.move_player_to_position(next_position)
         elif id == 6:
             state.addCash(chance_card.money, player_id)
         elif id == 7:
-            # pending
-            pass
+            state.update_jail_free_card(True)
         elif id == 8:
             next_position = current_position - 3
             state.move_player_to_position(next_position)
@@ -76,8 +79,14 @@ class Adjudicator:
             # pending
             state.move_player_to_position(next_position)
         elif id == 10:
-            # pending
-            pass
+            to_pay = 0
+            for property_status in state.property_status:
+                property_status = abs(property_status)
+                if abs(property_status) > 1 and property_status < 6:
+                    to_pay += abs(chance_card.money) * (property_status - 1)
+                elif property_status == 6:
+                    to_pay += abs(chance_card.money2)
+            state.deductCash(to_pay, player_id)
         elif id == 11:
             state.deductCash(chance_card.money, player_id)
         elif id == 12:
@@ -92,19 +101,19 @@ class Adjudicator:
             state.deductCash(chance_card.money, player_id)
         elif id == 15:
             state.addCash(chance_card.money, player_id)
-        return bsmt_required, rent_factor
+        return bsmt_required, rent_amt
 
     def runPlayerOnState(self, player, state):
 
         # Fetch player position
         player_id = state.turn_id % 2
         position = state.players_position[player_id]
-        rent_factor = 1
+        _rent_amt = None
         if self.board_instance.board_dict[position].name == Constants.COMMUNITY_CHEST:
             self.communityChestAction(state, player_id)
         elif state.is_player_has_chance_card():
             chance_card = self.board_instance.get_chance_card()
-            bsmt_action, rent_factor = state.perform_chance_card_action(chance_card)
+            bsmt_action, _rent_amt = state.perform_chance_card_action(chance_card)
             if bsmt_action is False:
                 return
         if state.property_status[position] == Status.UNOWNED:
@@ -135,12 +144,15 @@ class Adjudicator:
             if player_id == 0:
                 if state.property_status[position] < 0:
                     # Owned by p2 and p1 landed on it
-                    rent_amt = self.board_instance.get_rent(position)
+                    if _rent_amt is not None:
+                        rent_amt = _rent_amt
+                    else:
+                        rent_amt = self.board_instance.get_rent(position)
                     state.phase = Phase.PAY_RENT_UNOWNED_PROPERTY
 
                     if state.checkCash(rent_amt, self.player_instances[player_id]):
-                        state.deductCash(rent_amt * rent_factor, player_id)
-                        state.addCash(rent_amt * rent_factor, (player_id + 1) % 2)
+                        state.deductCash(rent_amt, player_id)
+                        state.addCash(rent_amt, (player_id + 1) % 2)
                         # TODO: additional info source, cash
                     else:
                         # TODO: Phase = BSMT (Mortgage or lose)
@@ -151,12 +163,15 @@ class Adjudicator:
             else:
                 if state.property_status[position] > 0:
                     # Owned by p1 and p2 landed on it
-                    rent_amt = self.board_instance.get_rent(position)
+                    if _rent_amt is not None:
+                        rent_amt = _rent_amt
+                    else:
+                        rent_amt = self.board_instance.get_rent(position)
                     state.phase = Phase.PAY_RENT_UNOWNED_PROPERTY
 
                     if state.checkCash(rent_amt, self.player_instances[player_id]):
-                        state.deductCash(rent_amt * rent_factor, player_id)
-                        state.addCash(rent_amt * rent_factor, (player_id + 1) % 2)
+                        state.deductCash(rent_amt, player_id)
+                        state.addCash(rent_amt, (player_id + 1) % 2)
                         # TODO: additional info source, cash
                     else:
                         # TODO: Phase = BSMT (Mortgage or lose)

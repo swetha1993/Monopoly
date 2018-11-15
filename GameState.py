@@ -1,4 +1,4 @@
-from Constants import INITIAL_CASH_TO_THE_PLAYER, DOUBLES_COUNT
+from Constants import *
 import Constants
 from enum import Enum
 from Property import Status
@@ -29,8 +29,15 @@ class GameState:
         self.phase = phase
         self.additional_info = additional_info
         self.additional_info[DOUBLES_COUNT] = {0: 0, 1: 0}
+        self.additional_info[JAIL_FREE_CARD] = {0: False, 1: False}
         self.debt = debt
         self.past_states = past_states
+
+    def update_jail_free_card(self, status):
+        if self.turn_id % 2 == 0:
+            self.additional_info[JAIL_FREE_CARD][0] = status
+        else:
+            self.additional_info[JAIL_FREE_CARD][1] = status
 
     def update_player_position(self, moves):
         if self.turn_id % 2 == 0:
